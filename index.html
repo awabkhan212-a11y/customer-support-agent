@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Support Center | Nexus Agents</title>
+    <meta name="description" content="Professional Customer Support AI Agent powered by rule-based intelligence.">
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="agent-info">
+                <div class="agent-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="agent-details">
+                    <h1>Nexus Support Agent</h1>
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span>Active & Online</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button id="clear-chat" title="Clear Chat" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Messages Area -->
+        <main class="chat-messages" id="chat-messages">
+            <!-- Initial Welcome Message -->
+            <div class="message bot-message">
+                Hello! I'm the Nexus Support Agent. How can I assist you with your billing, technical issues, or account today?
+                <span class="timestamp">Just now</span>
+            </div>
+            
+            <!-- Typing Indicator (Hidden by default) -->
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </main>
+
+        <!-- Input Area -->
+        <footer class="chat-input-container">
+            <form id="chat-form" class="input-wrapper">
+                <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                <button type="submit" class="send-btn" id="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="agent.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
