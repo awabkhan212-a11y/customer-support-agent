@@ -1,175 +1,163 @@
 /**
- * AgriGuard | Multi-Agent Agriculture Logic
+ * Multi-Agent System Logic for Customer Support
  */
 
-// --- Knowledge Base ---
-const CROP_DISEASES = {
-    "Nutrient Deficiency": {
-        symptoms: ["yellow leaves"],
-        treatment: ["Apply N-P-K fertilizer", "Check soil pH levels", "Use organic compost"],
-        actions: ["Monitor leaf color weekly", "Ensure proper sunlight exposure"],
-        insight: "Yellowing of leaves often indicates a lack of essential nutrients like Nitrogen or Iron, preventing chlorophyll production."
+const KNOWLEDGE_BASE = {
+    billing: {
+        keywords: ['payment', 'billing', 'invoice', 'charge', 'refund', 'price', 'subscription', 'cost', 'pay', 'checkout', 'receipt', 'card', 'visa', 'mastercard', 'paypal', 'wallet'],
+        responses: [
+            "I can assist with your billing inquiry. You can manage your payment methods and view past invoices in the 'Billing & Subscription' tab of your profile.",
+            "Regarding refunds: Our policy allows for full refunds within 30 days of purchase if the service hasn't been extensively used. Would you like to start a request?",
+            "If you're seeing an unexpected charge, please check if you have any active trials or automated renewals enabled in your account settings."
+        ]
     },
-    "Fungal Infection": {
-        symptoms: ["brown spots", "fungus"],
-        treatment: ["Apply copper-based fungicide", "Remove infected leaves immediately", "Improve air circulation"],
-        actions: ["Sanitize garden tools", "Avoid overhead watering to keep leaves dry"],
-        insight: "Moist and humid conditions promote fungal spore growth, which manifests as dark spots or visible fuzzy patches."
+    technical: {
+        keywords: ['error', 'bug', 'broken', 'not working', 'slow', 'crash', 'app', 'technical', 'help', 'fix', 'loading', 'api', 'integration', 'connect', 'timeout', 'failed', 'issue', 'glitch'],
+        responses: [
+            "It sounds like a technical glitch. I recommend first clearing your browser's local storage and cookies to see if that resolves the issue.",
+            "To help our engineering team investigate, could you tell me which browser you're using and if there's a specific error message on the screen?",
+            "If the application is unresponsive, please try a hard refresh (Ctrl+F5 or Cmd+Shift+R). If it persists, I can log a ticket for our technical team."
+        ]
     },
-    "Powdery Mildew": {
-        symptoms: ["white powder"],
-        treatment: ["Apply sulfur-based spray", "Mix neem oil with water and spray", "Thin out plants to improve airflow"],
-        actions: ["Move plant to a less humid area", "Monitor new growth for signs of spread"],
-        insight: "White powdery coating is a specific fungal growth that thrives in high humidity but dry leaf surfaces."
+    account: {
+        keywords: ['login', 'password', 'account', 'profile', 'email', 'reset', 'sign in', 'access', 'username', 'logout', 'mfa', '2fa', 'security', 'verify', 'credentials', 'signup'],
+        responses: [
+            "For security reasons, password resets must be initiated through the 'Forgot Password' link on the sign-in page. You'll receive a secure link via email.",
+            "You can update your security settings, including enabling Two-Factor Authentication (2FA), in the 'Security' section of your account.",
+            "If you've lost access to your primary email, please provide your account's recovery token or contact our verification department directly."
+        ]
     },
-    "Water Stress": {
-        symptoms: ["wilting", "dryness"],
-        treatment: ["Adjust irrigation schedule", "Deep water the roots early morning", "Apply mulch to retain moisture"],
-        actions: ["Check soil moisture depth regularly", "Protect from extreme midday sun"],
-        insight: "Wilting and dryness occur when the plant's transpiration rate exceeds its water uptake, leading to cell turgor loss."
+    sales: {
+        keywords: ['buy', 'purchase', 'demo', 'enterprise', 'pricing', 'plan', 'quote', 'custom', 'sales', 'upgrade', 'business', 'partnership', 'consultation'],
+        responses: [
+            "I'd be happy to put you in touch with our Sales team. Are you interested in our Enterprise plan or a custom solution for your business?",
+            "We offer a 15-minute product demo for new business clients. Would you like to see our calendar to book a session?",
+            "Our current pricing plans range from Basic to Pro. You can find a detailed comparison on our 'Pricing' page. Shall I take you there?"
+        ]
     },
-    "Bacterial Wilt": {
-        symptoms: ["wilting", "yellow leaves"],
-        treatment: ["Isolate infected plants", "Improve soil drainage", "Use disease-resistant varieties next season"],
-        actions: ["Avoid moving soil from infected areas", "Sterilize pots and tools"],
-        insight: "Bacterial pathogens can clog the plant's vascular system, preventing water flow even if the soil is wet."
+    general: {
+        keywords: ['hello', 'hi', 'hey', 'thanks', 'thank you', 'bye', 'goodbye', 'who are you', 'help', 'options', 'features', 'what can you do'],
+        responses: [
+            "Hello! I am the Nexus AI Assistant. I can help you with Billing, Technical Support, Account Management, or Sales inquiries. How can I assist?",
+            "You're very welcome! Let me know if there's anything else I can clarify for you.",
+            "I'm designed to provide rapid support. You can ask me about resetting passwords, fixing app errors, viewing invoices, or our enterprise pricing."
+        ]
     }
 };
 
-const DEFAULT_DIAGNOSIS = {
-    disease: "Undetermined Condition",
-    treatment: ["Consult a local agricultural expert", "Check for pests or root issues"],
-    actions: ["Keep a daily log of changes", "Isolate the plant if possible"],
-    insight: "Your symptoms don't clearly match a common disease. This could be a combination of factors or a specific local issue."
-};
-
-// --- Agent Systems ---
-
-const InputAgent = {
-    getData() {
-        const crop = document.getElementById('crop-type').value;
-        const symptoms = Array.from(document.querySelectorAll('input[name="symptom"]:checked')).map(cb => cb.value);
-        return { crop, symptoms };
-    },
-    saveData(data) {
-        localStorage.setItem('agri_last_scan', JSON.stringify(data));
-    },
-    loadLast() {
-        const last = localStorage.getItem('agri_last_scan');
-        return last ? JSON.parse(last) : null;
+class CustomerSupportAgent {
+    constructor() {
+        this.memory = [];
+        this.userName = "Valued Customer";
     }
-};
 
-const DiagnosisAgent = {
-    diagnose(symptoms) {
-        if (symptoms.length === 0) return null;
-
-        // Simple scoring based on symptom overlap
-        let bestMatch = null;
+    /**
+     * Classification Agent: Improved with weighted scoring and niche keyword boosts
+     */
+    classifyIntent(message) {
+        const lowerMsg = message.toLowerCase().replace(/[^\w\s]/g, '');
+        const words = lowerMsg.split(/\s+/);
+        
+        let bestCategory = 'unknown';
         let highestScore = 0;
 
-        for (const [disease, data] of Object.entries(CROP_DISEASES)) {
-            const overlap = symptoms.filter(s => data.symptoms.includes(s)).length;
-            if (overlap > highestScore) {
-                highestScore = overlap;
-                bestMatch = { disease, ...data };
+        const weights = {
+            enterprise: 5, // Very specific
+            refund: 5,
+            billing: 4,
+            demo: 5,
+            error: 4,
+            password: 5,
+            login: 4,
+            reset: 3
+        };
+
+        for (const [category, data] of Object.entries(KNOWLEDGE_BASE)) {
+            let score = 0;
+            
+            data.keywords.forEach(keyword => {
+                const weight = weights[keyword] || 2;
+                
+                if (words.includes(keyword)) {
+                    score += weight;
+                } else if (lowerMsg.includes(keyword)) {
+                    score += weight * 0.5;
+                }
+            });
+
+            if (score > highestScore) {
+                highestScore = score;
+                bestCategory = category;
+            } else if (score === highestScore && highestScore > 0) {
+                // Tie-breaking: favor more specific categories over 'general'
+                if (category !== 'general') bestCategory = category;
             }
         }
 
-        return bestMatch || { disease: "General Stress", ...DEFAULT_DIAGNOSIS };
+        return highestScore >= 2 ? bestCategory : 'unknown';
     }
-};
 
-// --- Orchestrator & UI Controller ---
-
-const AgriController = {
-    init() {
-        const form = document.getElementById('agri-form');
-        form.addEventListener('submit', (e) => this.handleAnalysis(e));
-
-        // Load last session
-        const lastData = InputAgent.loadLast();
-        if (lastData) {
-            this.fillForm(lastData);
-        }
-    },
-
-    fillForm(data) {
-        document.getElementById('crop-type').value = data.crop;
-        data.symptoms.forEach(s => {
-            const cb = document.querySelector(`input[value="${s}"]`);
-            if (cb) cb.checked = true;
-        });
-    },
-
-    async handleAnalysis(e) {
-        e.preventDefault();
-        const { crop, symptoms } = InputAgent.getData();
-
-        if (symptoms.length === 0) {
-            alert("Please select at least one symptom.");
-            return;
+    /**
+     * Response Agent: Returns a relevant response based on category
+     */
+    generateResponse(category) {
+        if (category === 'unknown') {
+            return this.escalate();
         }
 
-        const btn = document.getElementById('analyze-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<i data-lucide="loader"></i> Analyzing...';
-        lucide.createIcons();
-
-        // Simulate agent processing
-        this.resetAgentIndicators();
-        await this.runStep('agent-input', 500);
-        
-        const diagnosis = DiagnosisAgent.diagnose(symptoms);
-        await this.runStep('agent-diagnosis', 800);
-        await this.runStep('agent-treatment', 600);
-        await this.runStep('agent-action', 600);
-        await this.runStep('agent-insight', 500);
-
-        this.renderResults(diagnosis);
-        InputAgent.saveData({ crop, symptoms });
-
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="microscope"></i> Analyze Crop Health';
-        lucide.createIcons();
-    },
-
-    async runStep(id, delay) {
-        const el = document.getElementById(id);
-        el.classList.add('active');
-        await new Promise(r => setTimeout(r, delay));
-        el.classList.remove('active');
-        el.classList.add('complete');
-    },
-
-    resetAgentIndicators() {
-        document.querySelectorAll('.agent-item').forEach(el => {
-            el.classList.remove('active', 'complete');
-        });
-    },
-
-    renderResults(data) {
-        const results = document.getElementById('results-section');
-        results.classList.remove('hidden');
-
-        // Diagnosis
-        document.getElementById('diagnosis-text').innerText = `Based on the symptoms, your ${document.getElementById('crop-type').value} is likely suffering from:`;
-        document.getElementById('disease-badge').innerText = data.disease;
-
-        // Treatment
-        const treatmentList = document.getElementById('treatment-list');
-        treatmentList.innerHTML = data.treatment.map(t => `<li>${t}</li>`).join('');
-
-        // Action
-        const actionList = document.getElementById('action-list');
-        actionList.innerHTML = data.actions.map(a => `<li>${a}</li>`).join('');
-
-        // Insight
-        document.getElementById('insight-text').innerText = data.insight;
-
-        // Smooth scroll
-        results.scrollIntoView({ behavior: 'smooth' });
+        const responses = KNOWLEDGE_BASE[category].responses;
+        const randomIndex = Math.floor(Math.random() * responses.length);
+        return responses[randomIndex];
     }
-};
 
-AgriController.init();
+    /**
+     * Escalation Agent: Handles fallback logic
+     */
+    escalate() {
+        return "I'm not quite sure I understand your request. I've logged this and am escalating it to a human support representative. They will get back to you shortly. In the meantime, can I help with billing, technical, or account issues?";
+    }
+
+    /**
+     * Memory Agent: Adds message to session history
+     */
+    updateMemory(role, text) {
+        this.memory.push({
+            role,
+            text,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        });
+    }
+
+    /**
+     * Main Process: Orchestrates the agents
+     */
+    async processMessage(userMessage) {
+        // 1. Input Agent (handled by UI)
+        this.updateMemory('user', userMessage);
+
+        // Simulate "thinking" time
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+
+        // 2. Classification Agent
+        const category = this.classifyIntent(userMessage);
+
+        // 3. Response Agent (and potentially Escalation Agent)
+        const botResponse = this.generateResponse(category);
+
+        // 4. Memory Agent
+        this.updateMemory('bot', botResponse);
+
+        return {
+            category,
+            text: botResponse,
+            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+    }
+
+    getHistory() {
+        return this.memory;
+    }
+}
+
+// Export for use in app.js
+window.SupportAgent = new CustomerSupportAgent();

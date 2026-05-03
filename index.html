@@ -3,168 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriGuard | AI Crop Disease Detection Agent</title>
+    <title>AI Support Center | Nexus Agents</title>
+    <meta name="description" content="Professional Customer Support AI Agent powered by rule-based intelligence.">
     <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+
     <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="logo">
-                <i data-lucide="sprout"></i>
-                <span>AgriGuard</span>
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="agent-info">
+                <div class="agent-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="agent-details">
+                    <h1>Nexus Support Agent</h1>
+                    <div class="status">
+                        <span class="status-dot"></span>
+                        <span>Active & Online</span>
+                    </div>
+                </div>
             </div>
-            <div class="agent-panel">
-                <h3>Diagnostic Systems</h3>
-                <ul class="agent-list">
-                    <li class="agent-item active" id="agent-input">
-                        <i data-lucide="clipboard-list"></i>
-                        <span>Input Agent</span>
-                    </li>
-                    <li class="agent-item" id="agent-diagnosis">
-                        <i data-lucide="search"></i>
-                        <span>Diagnosis Agent</span>
-                    </li>
-                    <li class="agent-item" id="agent-treatment">
-                        <i data-lucide="shield-plus"></i>
-                        <span>Treatment Agent</span>
-                    </li>
-                    <li class="agent-item" id="agent-action">
-                        <i data-lucide="zap"></i>
-                        <span>Action Agent</span>
-                    </li>
-                    <li class="agent-item" id="agent-insight">
-                        <i data-lucide="brain-circuit"></i>
-                        <span>Insight Agent</span>
-                    </li>
-                </ul>
+            <div class="header-actions">
+                <button id="clear-chat" title="Clear Chat" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size:1.1rem;">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             </div>
-            <div class="system-status">
-                <div class="status-indicator"></div>
-                <span>System Online (Rule-Based)</span>
+        </header>
+
+        <!-- Messages Area -->
+        <main class="chat-messages" id="chat-messages">
+            <!-- Initial Welcome Message -->
+            <div class="message bot-message">
+                Hello! I'm the Nexus Support Agent. How can I assist you with your billing, technical issues, or account today?
+                <span class="timestamp">Just now</span>
             </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <header>
-                <h1>Crop Health Analysis</h1>
-                <p>Select your crop and symptoms to receive an intelligent diagnosis and treatment plan.</p>
-            </header>
-
-            <!-- Diagnosis Form -->
-            <section class="form-section">
-                <div class="card form-card">
-                    <form id="agri-form">
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="crop-type">Select Crop Type</label>
-                                <select id="crop-type" required>
-                                    <option value="" disabled selected>Choose a crop...</option>
-                                    <option value="Wheat">Wheat</option>
-                                    <option value="Rice">Rice</option>
-                                    <option value="Corn">Corn</option>
-                                    <option value="Tomato">Tomato</option>
-                                    <option value="Potato">Potato</option>
-                                    <option value="General">Other / General</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>Identify Symptoms (Select all that apply)</label>
-                                <div class="checkbox-group">
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="symptom" value="yellow leaves">
-                                        <span>Yellow Leaves</span>
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="symptom" value="brown spots">
-                                        <span>Brown Spots</span>
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="symptom" value="wilting">
-                                        <span>Wilting / Drooping</span>
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="symptom" value="white powder">
-                                        <span>White Powder</span>
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="symptom" value="fungus">
-                                        <span>Visible Fungus</span>
-                                    </label>
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="symptom" value="dryness">
-                                        <span>Extreme Dryness</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary" id="analyze-btn">
-                            <i data-lucide="microscope"></i>
-                            Analyze Crop Health
-                        </button>
-                    </form>
-                </div>
-            </section>
-
-            <!-- Results Section -->
-            <section id="results-section" class="results-grid hidden">
-                <div class="card result-card" id="card-diagnosis">
-                    <div class="card-header">
-                        <i data-lucide="activity"></i>
-                        <h2>Diagnosis</h2>
-                    </div>
-                    <div class="card-body">
-                        <p id="diagnosis-text">Pending analysis...</p>
-                        <div id="disease-badge" class="badge">N/A</div>
-                    </div>
-                </div>
-
-                <div class="card result-card" id="card-treatment">
-                    <div class="card-header">
-                        <i data-lucide="first-aid"></i>
-                        <h2>Treatment Plan</h2>
-                    </div>
-                    <div class="card-body">
-                        <ul id="treatment-list" class="action-list">
-                            <!-- Injected by JS -->
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card result-card" id="card-action">
-                    <div class="card-header">
-                        <i data-lucide="list-checks"></i>
-                        <h2>Next Steps</h2>
-                    </div>
-                    <div class="card-body">
-                        <ul id="action-list" class="action-list">
-                            <!-- Injected by JS -->
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="card result-card" id="card-insight">
-                    <div class="card-header">
-                        <i data-lucide="info"></i>
-                        <h2>AI Insight</h2>
-                    </div>
-                    <div class="card-body">
-                        <p id="insight-text" class="italic-text"> Reasoning will appear here...</p>
-                    </div>
-                </div>
-            </section>
+            
+            <!-- Typing Indicator (Hidden by default) -->
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
         </main>
+
+        <!-- Input Area -->
+        <footer class="chat-input-container">
+            <form id="chat-form" class="input-wrapper">
+                <input type="text" id="user-input" placeholder="Type your message here..." autocomplete="off">
+                <button type="submit" class="send-btn" id="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </footer>
     </div>
 
     <script src="agent.js"></script>
-    <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
