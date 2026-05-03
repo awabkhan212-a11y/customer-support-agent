@@ -52,37 +52,49 @@ class CustomerSupportAgent {
     }
 
     /**
-     * Classification Agent: Improved with weighted scoring and substring matching
+     * Classification Agent: Improved with weighted scoring and niche keyword boosts
      */
     classifyIntent(message) {
-        const lowerMsg = message.toLowerCase().replace(/[^\w\s]/g, ''); // Remove punctuation
+        const lowerMsg = message.toLowerCase().replace(/[^\w\s]/g, '');
         const words = lowerMsg.split(/\s+/);
         
         let bestCategory = 'unknown';
         let highestScore = 0;
 
+        const weights = {
+            enterprise: 5, // Very specific
+            refund: 5,
+            billing: 4,
+            demo: 5,
+            error: 4,
+            password: 5,
+            login: 4,
+            reset: 3
+        };
+
         for (const [category, data] of Object.entries(KNOWLEDGE_BASE)) {
             let score = 0;
             
             data.keywords.forEach(keyword => {
-                // Exact word match (higher weight)
+                const weight = weights[keyword] || 2;
+                
                 if (words.includes(keyword)) {
-                    score += 2;
-                } 
-                // Substring match (lower weight)
-                else if (lowerMsg.includes(keyword)) {
-                    score += 1;
+                    score += weight;
+                } else if (lowerMsg.includes(keyword)) {
+                    score += weight * 0.5;
                 }
             });
 
             if (score > highestScore) {
                 highestScore = score;
                 bestCategory = category;
+            } else if (score === highestScore && highestScore > 0) {
+                // Tie-breaking: favor more specific categories over 'general'
+                if (category !== 'general') bestCategory = category;
             }
         }
 
-        // Confidence threshold
-        return highestScore > 0 ? bestCategory : 'unknown';
+        return highestScore >= 2 ? bestCategory : 'unknown';
     }
 
     /**
